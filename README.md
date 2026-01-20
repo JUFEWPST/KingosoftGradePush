@@ -99,3 +99,5 @@ crontab -e
 ## 致谢
 - [XiQueEr2Ics](https://github.com/shutdown-awa/XiQueEr2Ics)
 - 等等..
+
+Copyright © 2026 [qiuyuyang](https://www.amqyy.cn/). All rights reserved.

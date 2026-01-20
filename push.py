@@ -30,6 +30,9 @@ class Push:
         for course in message['courses']:
             cource_info += f"|{course['name'][12:]}|{course['category'].split('/')[-1]}|{course['score']}|\n"
         content += cource_info
+        author_info = "Copyright © 2026 [qiuyuyang](https://www.amqyy.cn/). All rights reserved."
+        program_info = "项目地址:[https://github.com/qiuyuyang/KingosoftGradePush](https://github.com/qiuyuyang/KingosoftGradePush)"
+        content += f"\n{author_info}\n{program_info}"
         return title, content
 
     @staticmethod
