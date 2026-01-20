@@ -65,6 +65,14 @@ class Push:
         
         :param message: 需要检查的信息
         """
+        # 检测保存成绩文件是否存在
+        if not Path(f"{BASE_DIR}/data/last_grade.txt").exists():
+            logger.warning("成绩记录文件不存在,创建文件")
+            with open(f"{BASE_DIR}/data/last_grade.txt", "w") as f:
+                f.write("")
+        
+         # 计算当前成绩的MD5值
+
         check_message = "" 
         for course in message['courses']:
             check_message += f"{course['name']}:{course['score']}\n"
