@@ -1,0 +1,6 @@
+{
+    "baseUrl": "服务器地址",
+    "username": "学号",
+    "passwordMd5": "密码的md5值",
+    "token": "ShowDoc推送token值"
+}
