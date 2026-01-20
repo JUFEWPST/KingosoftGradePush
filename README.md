@@ -1,4 +1,4 @@
-# GradeEasyPush
+# KingosoftGradePush
 
 一个用于自动获取教务系统（青果/Kingo系统，适配江西财经大学）成绩并推送通知的 Python 工具。
 
@@ -17,7 +17,7 @@ pip install requests beautifulsoup4 PyExecJS
 
 自行安装`Node.js`
 
-## ⚙️ 配置文件
+## 配置文件
 
 在项目根目录下创建一个 `config.json` 文件（可以参考 `config.json.example`）。
 
