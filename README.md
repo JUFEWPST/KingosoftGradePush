@@ -95,3 +95,7 @@ crontab -e
 ## 免责声明
 
 本项目仅供学习和交流使用。请勿用于非法用途或频繁请求对教务系统造成压力。开发者不对使用本工具造成的任何后果负责。
+
+## 致谢
+- [XiQueEr2Ics](https://github.com/shutdown-awa/XiQueEr2Ics)
+- 等等..
