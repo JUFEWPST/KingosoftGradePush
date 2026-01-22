@@ -51,9 +51,11 @@ pip install requests beautifulsoup4 PyExecJS
 ## fpVisitorId获取
 
 `fpVisitorId`是浏览器指纹，所以请确保你使用的浏览器可以登录江财统一认证中心，推荐在尝试之前自行登录
-首先访问江财统一身份认证[https://ssl.jxufe.edu.cn/cas/login](https://ssl.jxufe.edu.cn/cas/login)
+首先使用**无痕式窗口**访问江财统一身份认证[https://ssl.jxufe.edu.cn/cas/login](https://ssl.jxufe.edu.cn/cas/login)
 ![alt text](img/image.png)
+
 输入账号密码后登录，确保登录,当弹出需要认证的时候，请选择记住设备并扫码。确保登录成功后退出登录
+![alt text](img/image-2.png)
 随后准备获取`fpVisitorId`
 以`Google Chrome`为例
 对着网页右键-检查-控制台
@@ -77,6 +79,7 @@ var fpPromise = FingerprintJS.load();
 ## 推送Token获取
 推送服务使用的是ShowDoc，请自行注册
 [https://push.showdoc.com.cn/#/](https://push.showdoc.com.cn/#/)
+![alt text](img/image-1.png)
 
 ## 使用方法
 
@@ -89,6 +92,10 @@ chmod +x jkingo.des.js
 ```
 
 由于我校屏蔽了国外的ip访问教务平台，故没有配置Github Action,请自行准备**国内服务器**做托管
+
+## 持久化使用
+
+我们可以将其部署到服务器上，使其每30分钟（或其他你想要的时间）运行一次程序，以确保及时收到成绩更新消息
 
 ### linux
 
@@ -124,6 +131,25 @@ crontab -e
 
 **注意自行替换路径**
 
+## 便携更新脚本
+
+我们可以利用github镜像便携更新脚本
+
+首先`clone`本仓库
+
+```bash
+git clone https://ghfast.top/https://github.com/JUFEWPST/KingosoftGradePush
+```
+
+配置本程序
+
+### 如何更新
+
+在本项目目录下输入
+```bash
+git pull
+```
+即可更新脚本
 
 ## 免责声明
 
