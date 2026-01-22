@@ -25,12 +25,16 @@ pip install requests beautifulsoup4 PyExecJS
 
 ```json
 {
-    "baseUrl": "服务器地址，江西财经大学为:https://jwxt.jxufe.edu.cn",
+    "baseUrl": "服务器地址",
     "username": "学号",
     "passwordMd5": "密码的md5值",
-    "token": "ShowDoc推送token值"
+    "token": "ShowDoc推送token值",
+    "login_way": 0,
+    "password": "江财oa密码",
+    "fpVisitorId": "已认证浏览器指纹"
 }
 ```
+其中， login_way的值为0则使用喜鹊儿登录为1则使用江财oa登录
 
 **字段说明：**
 
