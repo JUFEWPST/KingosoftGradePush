@@ -3,7 +3,6 @@ from push import *
 import json
 import sys
 import re
-import logging
 from logger import setup_logging
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent

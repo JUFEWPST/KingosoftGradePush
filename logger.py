@@ -1,6 +1,5 @@
 import logging
 from logging.handlers import RotatingFileHandler
-import os
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 def setup_logging(log_file=f"{BASE_DIR}/app.log", log_level=logging.INFO):
