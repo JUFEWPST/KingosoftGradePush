@@ -151,7 +151,74 @@ class XqeLogin:
         
         logger.info("登录成功")
         return updatedJsessionId
+
+class OALogin:
+    @staticmethod
+    def get_execution():
+        login_url = "https://ssl.jxufe.edu.cn:443/cas/login"
+        login_headers = {"Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Sec-Ch-Ua-Mobile": "?0", "Sec-Ch-Ua-Platform": "\"Windows\"", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7", "Sec-Fetch-Site": "none", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-User": "?1", "Sec-Fetch-Dest": "document", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9", "Priority": "u=0, i", "Connection": "keep-alive"}
+        response = requests.get(login_url, headers=login_headers)
+        pattern = r'name="execution" value="(.*?)"'
+        match = re.search(pattern, response.text)
+        if match:
+            execution_value = match.group(1)
+            return execution_value
+        else:
+            logger.error("无法找到execution参数")
+            raise ValueError("无法找到execution参数")
     
+    @staticmethod
+    def get_state(username,password,fpVisitorId):
+        detect_url = "https://ssl.jxufe.edu.cn:443/cas/mfa/detect"
+        detect_cookies = {"SESSION": "a3029c18-455a-4396-8837-a7065a517630", "Hm_lvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "Hm_lpvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "HMACCOUNT": "2A4F8C1E60A3506C"}
+        detect_headers = {"Sec-Ch-Ua-Platform": "\"Windows\"", "X-Requested-With": "XMLHttpRequest", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "application/json, text/javascript, */*; q=0.01", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "Sec-Ch-Ua-Mobile": "?0", "Origin": "https://ssl.jxufe.edu.cn", "Sec-Fetch-Site": "same-origin", "Sec-Fetch-Mode": "cors", "Sec-Fetch-Dest": "empty", "Referer": "https://ssl.jxufe.edu.cn/cas/login", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9", "Priority": "u=1, i", "Connection": "keep-alive"}
+        detect_data = {"username": f"{username}", "password": f"{password}", "fpVisitorId": f"{fpVisitorId}"}
+        response = requests.post(detect_url, headers=detect_headers, cookies=detect_cookies, data=detect_data)
+        state = response.json()["data"]["state"]
+        if state:
+            return state
+        else:
+            logger.error("无法找到state参数")
+            raise ValueError("无法找到state参数")
+    @staticmethod
+    def get_TGC(username,password,fpVisitorId,execution,state):
+        login_url = "https://ssl.jxufe.edu.cn:443/cas/login"
+        login_cookies = {"SESSION": "a3029c18-455a-4396-8837-a7065a517630", "Hm_lvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "Hm_lpvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "HMACCOUNT": "2A4F8C1E60A3506C"}
+        login_headers = {"Cache-Control": "max-age=0", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Sec-Ch-Ua-Mobile": "?0", "Sec-Ch-Ua-Platform": "\"Windows\"", "Origin": "https://ssl.jxufe.edu.cn", "Content-Type": "application/x-www-form-urlencoded", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7", "Sec-Fetch-Site": "same-origin", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "document", "Referer": "https://ssl.jxufe.edu.cn/cas/login", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9", "Priority": "u=0, i", "Connection": "keep-alive"}
+        login_data = {"username": f"{username}", "password": f"{password}", "captcha": '', "currentMenu": "1", "failN": "0", "mfaState": f"{state}", "execution": f"{execution}", "_eventId": "submit", "geolocation": '', "fpVisitorId": f"{fpVisitorId}", "trustAgent": '', "submit1": "Login1"}
+        response = requests.post(login_url, headers=login_headers, cookies=login_cookies, data=login_data)
+        TGC = response.cookies.get("TGC")
+        if TGC:
+            return TGC
+        else:
+            logger.error("登录失败，无法找到TGC参数")
+            raise ValueError("登录失败，无法找到TGC参数")
+    @staticmethod
+    def get_ticket(TGC):
+        ticket_url = "https://ssl.jxufe.edu.cn:443/cas/login?service=https%3A%2F%2Fjwxt.jxufe.edu.cn%2F%2Fjxcjcaslogin"
+        ticket_cookies = {"SESSION": "a3029c18-455a-4396-8837-a7065a517630", "TGC": f"{TGC}", "Hm_lvt_d605d8df6bf5ca8a54fe078683196518": "1769068332", "HMACCOUNT": "F828A0FB14E8EEEC", "Hm_lpvt_d605d8df6bf5ca8a54fe078683196518": "1769068338"}
+        ticket_headers = {"Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7", "Sec-Fetch-Site": "none", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-User": "?1", "Sec-Fetch-Dest": "document", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Sec-Ch-Ua-Mobile": "?0", "Sec-Ch-Ua-Platform": "\"Windows\"", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9", "Priority": "u=0, i", "Connection": "keep-alive"}
+        response = requests.get(ticket_url, headers=ticket_headers, cookies=ticket_cookies, allow_redirects=False)
+        pattern = r'ticket=(ST-[\w-]+)'
+        match = re.search(pattern, response.headers.get('Location', ''))
+        if match:
+            ticket = match.group(1)
+            return ticket
+        else:
+            logger.error("登录失败,无法找到ticket参数")
+            raise ValueError("登录失败,无法找到ticket参数")
+    @staticmethod
+    def get_jsessionid(ticket):
+        server_url = "https://jwxt.jxufe.edu.cn:443//jxcjcaslogin"
+        server_headers = {"Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7", "Sec-Fetch-Site": "none", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-User": "?1", "Sec-Fetch-Dest": "document", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Sec-Ch-Ua-Mobile": "?0", "Sec-Ch-Ua-Platform": "\"Windows\"", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9", "Priority": "u=0, i", "Connection": "keep-alive", "Content-Type": "application/x-www-form-urlencoded"}
+        server_data = {"ticket": f"{ticket}"}
+        response = requests.post(server_url, headers=server_headers, data=server_data, allow_redirects=False)
+        jsessionid = response.cookies.get("JSESSIONID")
+        if jsessionid:
+            return jsessionid
+        else:
+            logger.error("登录失败,无法找到JSESSIONID参数")
+            raise ValueError("登录失败,无法找到JSESSIONID参数")
 class XqeGradePull:
     @staticmethod
     def GetGradeParams(jsessionid, base_url):

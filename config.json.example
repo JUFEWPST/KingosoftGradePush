@@ -2,5 +2,8 @@
     "baseUrl": "服务器地址",
     "username": "学号",
     "passwordMd5": "密码的md5值",
-    "token": "ShowDoc推送token值"
+    "token": "ShowDoc推送token值",
+    "login_way": 0 0为喜鹊儿登录1为江财oa登录,
+    "password": "江财oa密码",
+    "fpVisitorId": "已认证浏览器指纹"
 }

@@ -28,7 +28,9 @@ def load_config():
     username = config.get('username')
     password_md5 = config.get('passwordMd5')
     token = config.get('token')
-
+    login_way = config.get('login_way', 0)
+    password = config.get('password','')
+    fpVisitorId = config.get('fpVisitorId')
     # 验证 username (纯数字)
     if not username or not str(username).isdigit():
         logger.error("配置校验失败：username 应为纯数字")
@@ -44,24 +46,34 @@ def load_config():
         logger.error("配置校验失败：token 不能为空")
         sys.exit(1)
 
-    return base_url, username, password_md5, token
+    return base_url, username, password_md5, token,login_way, password,fpVisitorId
 
 if __name__ == "__main__":
     logger.info("程序启动")
-    base_url, username, onceMd5Password, token = load_config()
+    base_url, username, onceMd5Password, token, login_way, password, fpVisitorId = load_config()
     
     try:
-        login = XqeLogin(base_url)
-        #获取登录必须的参数
-        jsessionid, sessionid, deskey, nowtime = login.GetDynamicParams()
-        logger.info("动态参数获取成功")
-        
-        #获取登录参数
-        signInParams = login.SignInParamsCombime(username, onceMd5Password, nowtime, deskey, sessionid)
-        #登录并获取新的jsessionid
-        jsessionid = login.SignIn(signInParams, jsessionid)
-        logger.info("登录成功")
-
+        if login_way == 0:
+            logger.info("使用 Kingosoft 登录方式")
+            #Kingosoft登录方式
+            login = XqeLogin(base_url)
+            #获取登录必须的参数
+            jsessionid, sessionid, deskey, nowtime = login.GetDynamicParams()
+            logger.info("动态参数获取成功")
+            
+            #获取登录参数
+            signInParams = login.SignInParamsCombime(username, onceMd5Password, nowtime, deskey, sessionid)
+            #登录并获取新的jsessionid
+            jsessionid = login.SignIn(signInParams, jsessionid)
+            logger.info("登录成功")
+        elif login_way == 1:
+            logger.info("使用 CAS 登录方式")
+            #CAS登录方式
+            execution = OALogin.get_execution()
+            state = OALogin.get_state(username,password,fpVisitorId)
+            TGC = OALogin.get_TGC(username, password, fpVisitorId,execution,state)
+            ticket = OALogin.get_ticket(TGC)
+            jsessionid = OALogin.get_jsessionid(ticket)
         #获取成绩参数
         schoolYear, term, userCode = XqeGradePull.GetGradeParams(jsessionid, base_url)
         #获取成绩HTML
