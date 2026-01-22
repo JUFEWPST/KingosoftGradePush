@@ -50,7 +50,7 @@ def load_config():
 if __name__ == "__main__":
     logger.info("程序启动")
     base_url, username, onceMd5Password, token, login_way, password, fpVisitorId = load_config()
-    
+     
     try:
         if login_way == 0:
             logger.info("使用 Kingosoft 登录方式")

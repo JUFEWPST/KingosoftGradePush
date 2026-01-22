@@ -162,6 +162,7 @@ class OALogin:
         match = re.search(pattern, response.text)
         if match:
             execution_value = match.group(1)
+            logger.debug(f"获取到execution参数: {execution_value}")
             return execution_value
         else:
             logger.error("无法找到execution参数")
@@ -170,10 +171,10 @@ class OALogin:
     @staticmethod
     def get_state(username,password,fpVisitorId):
         detect_url = "https://ssl.jxufe.edu.cn:443/cas/mfa/detect"
-        detect_cookies = {"SESSION": "a3029c18-455a-4396-8837-a7065a517630", "Hm_lvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "Hm_lpvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "HMACCOUNT": "2A4F8C1E60A3506C"}
+        # detect_cookies = {"SESSION": "a3029c18-455a-4396-8837-a7065a517630", "Hm_lvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "Hm_lpvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "HMACCOUNT": "2A4F8C1E60A3506C"}
         detect_headers = {"Sec-Ch-Ua-Platform": "\"Windows\"", "X-Requested-With": "XMLHttpRequest", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "application/json, text/javascript, */*; q=0.01", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "Sec-Ch-Ua-Mobile": "?0", "Origin": "https://ssl.jxufe.edu.cn", "Sec-Fetch-Site": "same-origin", "Sec-Fetch-Mode": "cors", "Sec-Fetch-Dest": "empty", "Referer": "https://ssl.jxufe.edu.cn/cas/login", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9", "Priority": "u=1, i", "Connection": "keep-alive"}
         detect_data = {"username": f"{username}", "password": f"{password}", "fpVisitorId": f"{fpVisitorId}"}
-        response = requests.post(detect_url, headers=detect_headers, cookies=detect_cookies, data=detect_data)
+        response = requests.post(detect_url, headers=detect_headers, data=detect_data)
         state = response.json()["data"]["state"]
         if state:
             return state
@@ -183,10 +184,10 @@ class OALogin:
     @staticmethod
     def get_TGC(username,password,fpVisitorId,execution,state):
         login_url = "https://ssl.jxufe.edu.cn:443/cas/login"
-        login_cookies = {"SESSION": "a3029c18-455a-4396-8837-a7065a517630", "Hm_lvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "Hm_lpvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "HMACCOUNT": "2A4F8C1E60A3506C"}
+        # login_cookies = {"SESSION": "a3029c18-455a-4396-8837-a7065a517630", "Hm_lvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "Hm_lpvt_d605d8df6bf5ca8a54fe078683196518": "1769062003", "HMACCOUNT": "2A4F8C1E60A3506C"}
         login_headers = {"Cache-Control": "max-age=0", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Sec-Ch-Ua-Mobile": "?0", "Sec-Ch-Ua-Platform": "\"Windows\"", "Origin": "https://ssl.jxufe.edu.cn", "Content-Type": "application/x-www-form-urlencoded", "Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7", "Sec-Fetch-Site": "same-origin", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "document", "Referer": "https://ssl.jxufe.edu.cn/cas/login", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9", "Priority": "u=0, i", "Connection": "keep-alive"}
         login_data = {"username": f"{username}", "password": f"{password}", "captcha": '', "currentMenu": "1", "failN": "0", "mfaState": f"{state}", "execution": f"{execution}", "_eventId": "submit", "geolocation": '', "fpVisitorId": f"{fpVisitorId}", "trustAgent": '', "submit1": "Login1"}
-        response = requests.post(login_url, headers=login_headers, cookies=login_cookies, data=login_data)
+        response = requests.post(login_url, headers=login_headers, data=login_data)
         TGC = response.cookies.get("TGC")
         if TGC:
             return TGC
@@ -214,11 +215,31 @@ class OALogin:
         server_data = {"ticket": f"{ticket}"}
         response = requests.post(server_url, headers=server_headers, data=server_data, allow_redirects=False)
         jsessionid = response.cookies.get("JSESSIONID")
+        location = response.headers.get('Location', '')
         if jsessionid:
+            logger.debug(f"获取到JSESSIONID参数: {jsessionid}")
+            status = OALogin.login_test(jsessionid,location)
+            if status:
+                logger.info("CAS登录成功")
+            else:
+                logger.error("CAS登录失败，JSESSIONID无效")
+                raise ValueError("CAS登录失败，JSESSIONID无效")
             return jsessionid
         else:
             logger.error("登录失败,无法找到JSESSIONID参数")
             raise ValueError("登录失败,无法找到JSESSIONID参数")
+    @staticmethod
+    def login_test(jsessionid,location):
+        test_url = f"{location}"
+        test_cookies = {"JSESSIONID": f"{jsessionid}"}
+        test_headers = {"Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7", "Sec-Fetch-Site": "none", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-User": "?1", "Sec-Fetch-Dest": "document", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Sec-Ch-Ua-Mobile": "?0", "Sec-Ch-Ua-Platform": "\"Windows\"", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8", "Priority": "u=0, i", "Connection": "keep-alive"}
+        response = requests.get(test_url, headers=test_headers, cookies=test_cookies)
+        logger.info(f"登录测试: {response.status_code}")
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+
 class XqeGradePull:
     @staticmethod
     def GetGradeParams(jsessionid, base_url):
@@ -232,7 +253,7 @@ class XqeGradePull:
             response = requests.get(f"{base_url}/jw/common/showYearTerm.action", headers=headers)
             response.raise_for_status()
         except Exception as e:
-            logger.error(f"获取个人信息请求失败: {e}")
+            logger.error(f"获取个人信息请求失败: {e}\n{response.text}")
             raise Exception(f"获取个人信息时出错: {e}")
         
         # 匹配结果
@@ -242,7 +263,7 @@ class XqeGradePull:
             term = response_json['xqM']
             userCode = response_json['userCode']
         except (KeyError, json.JSONDecodeError) as e:
-            logger.error(f"解析个人信息JSON失败: {e}")
+            logger.error(f"解析个人信息JSON失败: {e}\n{response.text}")
             raise Exception(f"解析用户信息失败: {e}")
 
         if not schoolYear or not term:
@@ -363,4 +384,4 @@ class html2dict:
             logger.exception(f"解析HTML时出错: {e}")
             result["error"] = f"解析HTML时出错: {e}"
             return result
-        return result
+        
