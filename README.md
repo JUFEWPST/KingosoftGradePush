@@ -44,6 +44,35 @@ pip install requests beautifulsoup4 PyExecJS
   - *提示：你可以使用在线 MD5 工具将你的明文密码转换为 32 位小写哈希值。*
   - eg:站长工具[https://tool.chinaz.com/tools/md5.aspx](https://tool.chinaz.com/tools/md5.aspx)
 - `token`: 消息推送服务的 Token (不能为空)。
+- `long_way`: 值为0则使用喜鹊儿登录为1则使用江财oa登录
+- `password`: 江财统一登陆密码
+- `fpVisitorId`: 江财统一登陆浏览器指纹,确保该浏览器可以登录江财统一认证中心
+
+## fpVisitorId获取
+
+`fpVisitorId`是浏览器指纹，所以请确保你使用的浏览器可以登录江财统一认证中心，推荐在尝试之前自行登录
+首先访问江财统一身份认证[https://ssl.jxufe.edu.cn/cas/login](https://ssl.jxufe.edu.cn/cas/login)
+![alt text](img/image.png)
+输入账号密码后登录，确保登录,当弹出需要认证的时候，请选择记住设备并扫码。确保登录成功后退出登录
+随后准备获取`fpVisitorId`
+以`Google Chrome`为例
+对着网页右键-检查-控制台
+复制下方代码到控制台中后回车
+```js
+var fpPromise = FingerprintJS.load();
+    fpPromise
+      .then(function (fp) { return fp.get() })
+      .then(function (result) {
+        // Handle the result
+        console.log(result)
+        alert(result.visitorId)
+      })
+```
+![alt text](img/image1.png)
+
+网页中就会弹出`fpVisitorId`，将其填入配置文件中即可
+
+![alt text](img/image2.png)
 
 ## 推送Token获取
 推送服务使用的是ShowDoc，请自行注册
