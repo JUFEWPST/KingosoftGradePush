@@ -231,6 +231,9 @@ class OALogin:
     @staticmethod
     def login_test(jsessionid,location):
         test_url = f"{location}"
+        if "jwxt.jxufe.edu.cn" not in location:
+            logger.error(f"location出错{location}")
+            location = "https://jwxt.jxufe.edu.cn/frame/homes.action"
         test_cookies = {"JSESSIONID": f"{jsessionid}"}
         test_headers = {"Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7", "Sec-Fetch-Site": "none", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-User": "?1", "Sec-Fetch-Dest": "document", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Sec-Ch-Ua-Mobile": "?0", "Sec-Ch-Ua-Platform": "\"Windows\"", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8", "Priority": "u=0, i", "Connection": "keep-alive"}
         response = requests.get(test_url, headers=test_headers, cookies=test_cookies)
