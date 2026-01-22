@@ -1,6 +1,7 @@
 from get_grade import *
 from push import *
 import json
+import logging
 import sys
 import re
 from logger import setup_logging
@@ -30,6 +31,7 @@ def load_config():
     login_way = config.get('login_way', 0)
     password = config.get('password','')
     fpVisitorId = config.get('fpVisitorId')
+    log_level = config.get('log_level', "INFO")
     # 验证 username (纯数字)
     if not username or not str(username).isdigit():
         logger.error("配置校验失败：username 应为纯数字")
@@ -45,11 +47,17 @@ def load_config():
         logger.error("配置校验失败：token 不能为空")
         sys.exit(1)
 
-    return base_url, username, password_md5, token,login_way, password,fpVisitorId
+    return base_url, username, password_md5, token,login_way, password,fpVisitorId, log_level
 
 if __name__ == "__main__":
     logger.info("程序启动")
-    base_url, username, onceMd5Password, token, login_way, password, fpVisitorId = load_config()
+    base_url, username, onceMd5Password, token, login_way, password, fpVisitorId, log_level = load_config()
+
+    # 设置日志等级
+    level = getattr(logging, log_level.upper(), logging.INFO)
+    logger.setLevel(level)
+    for handler in logger.handlers:
+        handler.setLevel(level)
      
     try:
         if login_way == 0:

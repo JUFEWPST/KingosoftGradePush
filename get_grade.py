@@ -210,7 +210,7 @@ class OALogin:
             raise ValueError("登录失败,无法找到ticket参数")
     @staticmethod
     def get_jsessionid(ticket):
-        server_url = "https://jwxt.jxufe.edu.cn:443//jxcjcaslogin"
+        server_url = "https://jwxt.jxufe.edu.cn:443/jxcjcaslogin"
         server_headers = {"Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7", "Sec-Fetch-Site": "none", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-User": "?1", "Sec-Fetch-Dest": "document", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Sec-Ch-Ua-Mobile": "?0", "Sec-Ch-Ua-Platform": "\"Windows\"", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9", "Priority": "u=0, i", "Connection": "keep-alive", "Content-Type": "application/x-www-form-urlencoded"}
         server_data = {"ticket": f"{ticket}"}
         response = requests.post(server_url, headers=server_headers, data=server_data, allow_redirects=False)
@@ -218,7 +218,7 @@ class OALogin:
         location = response.headers.get('Location', '')
         if jsessionid:
             logger.debug(f"获取到JSESSIONID参数: {jsessionid}")
-            status = OALogin.login_test(jsessionid,location)
+            status = OALogin.login_test(jsessionid,ticket)
             if status:
                 logger.info("CAS登录成功")
             else:
@@ -229,19 +229,23 @@ class OALogin:
             logger.error("登录失败,无法找到JSESSIONID参数")
             raise ValueError("登录失败,无法找到JSESSIONID参数")
     @staticmethod
-    def login_test(jsessionid,location):
-        test_url = f"{location}"
-        if "jwxt.jxufe.edu.cn" not in test_url:
-            logger.error(f"location出错{test_url}")
-            test_url = "https://jwxt.jxufe.edu.cn/frame/homes.action"
+    def login_test(jsessionid,ticket):
+        test_url = f"https://jwxt.jxufe.edu.cn:443/jxcjcaslogin?ticket={ticket}"
         test_cookies = {"JSESSIONID": f"{jsessionid}"}
         test_headers = {"Upgrade-Insecure-Requests": "1", "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36", "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7", "Sec-Fetch-Site": "none", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-User": "?1", "Sec-Fetch-Dest": "document", "Sec-Ch-Ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"", "Sec-Ch-Ua-Mobile": "?0", "Sec-Ch-Ua-Platform": "\"Windows\"", "Accept-Encoding": "gzip, deflate, br", "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8", "Priority": "u=0, i", "Connection": "keep-alive"}
         response = requests.get(test_url, headers=test_headers, cookies=test_cookies)
-        logger.info(f"登录测试: {response.status_code}")
+        logger.debug(f"登录测试: {response.text}")
         if response.status_code == 200:
-            return True
+            if response.text == None:
+                logger.error("CAS登录测试失败，响应内容为空")
+                return False
+            else:
+                logger.info("CAS登录测试成功")
+                logger.debug(f"CAS登录测试内容: 状态码：{response.status_code} 内容：{response.text}")
+                return True
         else:
-            return False
+            logger.debug(f"CAS登录测试{response.status_code}")
+            return True
 
 class XqeGradePull:
     @staticmethod

@@ -29,9 +29,10 @@ pip install requests beautifulsoup4 PyExecJS
     "username": "学号",
     "passwordMd5": "密码的md5值",
     "token": "ShowDoc推送token值",
-    "login_way": 0,
+    "login_way": 0 ,
     "password": "江财oa密码",
-    "fpVisitorId": "已认证浏览器指纹"
+    "fpVisitorId": "已认证浏览器指纹",
+    "log_level": "INFO"
 }
 ```
 其中， login_way的值为0则使用喜鹊儿登录为1则使用江财oa登录
@@ -47,7 +48,7 @@ pip install requests beautifulsoup4 PyExecJS
 - `long_way`: 值为0则使用喜鹊儿登录为1则使用江财oa登录
 - `password`: 江财统一登陆密码
 - `fpVisitorId`: 江财统一登陆浏览器指纹,确保该浏览器可以登录江财统一认证中心
-
+- `log_level`: log等级
 ## fpVisitorId获取
 
 `fpVisitorId`是浏览器指纹，所以请确保你使用的浏览器可以登录江财统一认证中心，推荐在尝试之前自行登录
