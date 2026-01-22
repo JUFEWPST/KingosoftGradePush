@@ -65,11 +65,15 @@ class Push:
         
         :param message: 需要检查的信息
         """
-        # 检测保存成绩文件是否存在
-        if not Path(f"{BASE_DIR}/data/last_grade.txt").exists():
+        grade_file = Path(BASE_DIR) / "data" / "last_grade.txt"
+        # 检查父目录（data文件夹）
+        if not grade_file.parent.exists():
+            logger.warning("数据文件夹不存在,创建文件夹")
+            grade_file.parent.mkdir(parents=True)
+        # 检查文件
+        if not grade_file.exists():
             logger.warning("成绩记录文件不存在,创建文件")
-            with open(f"{BASE_DIR}/data/last_grade.txt", "w") as f:
-                f.write("")
+            grade_file.touch()
         
          # 计算当前成绩的MD5值
 
